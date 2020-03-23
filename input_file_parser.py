@@ -117,11 +117,11 @@ if __name__ == '__main__':
     input = "InputFiles/c_incunabula.txt"
     task = parse(input)
     count, output = day_after_day(task)
-    with open("InputFiles/c_incunabula.txt" + "_out.txt", "w") as f:
+    with open(input + "_out.txt", "w") as f:
         print count
         f.writelines([str(count)])
         for k, v in output.items():
             f.writelines(["{} {}".format(k, len(v))])
             print k, len(v)
-            f.writelines([' '.join(v)])
-            print ' '.join(v)
+            f.writelines([' '.join([str(i) for i in v])])
+            print ' '.join([str(i) for i in v])
