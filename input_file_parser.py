@@ -56,6 +56,7 @@ def calculate_maximal_route(start_id, task_database):
         print(total_time)
     return total_score, total_result_tuple_array
 
+
 def day_after_day(task_database):
     total_days = task_database.days
     current_running_libraries = []
@@ -65,27 +66,34 @@ def day_after_day(task_database):
     for day_number in xrange(total_days):
         print "day #{}".format(day_number)
         if time_until_next_lib_registeration is 0:
-            if about_to_register_lib:
+            if about_to_register_lib is not None:
                 print "lib #{} finished registeration".format(about_to_register_lib)
                 current_running_libraries.append(about_to_register_lib)
-                scannable_books_ids.extend([i for i in about_to_register_lib.books_ids if i not in scannable_books_ids])
-                sorted(scannable_books_ids, key=lambda i: task_database.books[i].score, reverse=True)
-            about_to_register_lib = find_current_most_valuable_lib(about_to_register_lib, total_days-day_number)
-            print "lib #{} started registeration".format(day_number)
-            time_until_next_lib_registeration = about_to_register_lib.signup_time
+                scannable_books_ids.extend([i for i in task_database.libraries[about_to_register_lib].books_ids if i not in scannable_books_ids])
+                scannable_books_ids = sorted(scannable_books_ids, key=lambda i: task_database.books[i].score, reverse=True)
+                print scannable_books_ids
+            about_to_register_lib = find_current_most_valuable_lib(task_database, total_days-day_number, current_running_libraries)
+            if about_to_register_lib == -1:
+                time_until_next_lib_registeration = -1
+                print "finish registeration of all libs"
+            else:
+                print "lib #{} started registeration".format(about_to_register_lib)
+                time_until_next_lib_registeration = task_database.libraries[about_to_register_lib].signup_time
         for lib in current_running_libraries:
             scanned_books_by_current_lib = []
             for book_id in scannable_books_ids:
-                if book_id in lib.books_ids:
+                if book_id in task_database.libraries[lib].books_ids:
                     scanned_books_by_current_lib.append(book_id)
                     task_database.books[book_id].is_scanned = True
-                    if len(scanned_books_by_current_lib) == lib.scanning_throughput:
+                    if len(scanned_books_by_current_lib) == task_database.libraries[lib].scanning_throughput:
                         break
             for book_id in scanned_books_by_current_lib:
                 scannable_books_ids.remove(book_id)
-            print "lib {} scanned book id:".format(lib), scanned_books_by_current_lib
+            if len(scanned_books_by_current_lib):
+                print "lib {} scanned book id:".format(lib), scanned_books_by_current_lib
         # next day preparation:
         time_until_next_lib_registeration -= 1
+    
 
 
 
@@ -96,9 +104,5 @@ def day_after_day(task_database):
 
 # for testing:
 if __name__ == '__main__':
-    task = parse("InputFiles\\c_incunabula.txt")
-    timing_measure = calculate_timing_tradeoff(task, [])
-    libraries_ids = sorted((library_evaluation, index) for index,library_evaluation in enumerate(timing_measure))
-    total_score, total_result_tuple_array = calculate_maximal_route(libraries_ids[-1][1], task)
-
-    print(libraries_ids)
+    task = parse("InputFiles/c_incunabula.txt")
+    day_after_day(task)
